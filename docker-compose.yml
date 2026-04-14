@@ -1,0 +1,49 @@
+services:
+  db:
+    image: mysql:5.7
+    container_name: prestashop-local-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - db_data:/var/lib/mysql
+
+  prestashop:
+    image: prestashop/prestashop:${PRESTASHOP_VERSION}-apache
+    container_name: prestashop-local-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      DB_SERVER: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWORD}
+      PS_DOMAIN: ${PS_DOMAIN}
+      PS_HANDLE_DYNAMIC_DOMAIN: "1"
+      PS_INSTALL_AUTO: "1"
+      PS_DEMO_MODE: "1"
+      PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN}
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWD: ${ADMIN_PASSWD}
+    volumes:
+      - prestashop_data:/var/www/html
+
+volumes:
+  db_data:
+  prestashop_data:

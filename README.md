@@ -1,6 +1,6 @@
 # PrestaShop local
 
-Instance locale PrestaShop prête pour démo/recette client, basée sur Docker Compose et auto-installée.
+Instance locale PrestaShop prête pour recette client, basée sur Docker Compose et auto-installée.
 
 ## Version retenue
 
@@ -30,7 +30,7 @@ ou :
 make up
 ```
 
-Le premier démarrage peut prendre quelques minutes, le temps que PrestaShop s'installe automatiquement et charge les données de démonstration.
+Le premier démarrage peut prendre quelques minutes, le temps que PrestaShop s'installe automatiquement.
 
 ## Arrêt
 
@@ -97,12 +97,53 @@ Ces valeurs sont définies dans `.env`.
 La stack utilise les variables d'environnement officielles de l'image PrestaShop :
 
 - `PS_INSTALL_AUTO=1`
-- `PS_DEMO_MODE=1`
+- `PS_DEMO_MODE=0`
 - `PS_DOMAIN=localhost:8080`
+- `PS_LANGUAGE=fr`
+- `PS_COUNTRY=fr`
+- `PS_HANDLE_DYNAMIC_DOMAIN=0`
 - `PS_FOLDER_ADMIN=admin-dev`
 - `ADMIN_MAIL` et `ADMIN_PASSWD`
 
 Tant que les volumes Docker existent, relancer la stack repart sur l'instance déjà installée.
+
+## Important sur le mode démo
+
+Si `PS_DEMO_MODE=1`, certaines fonctionnalités du back office peuvent être bloquées avec le message `This functionality has been disabled.`.
+
+Pour une instance client réellement éditable, il faut utiliser :
+
+```env
+PS_DEMO_MODE=0
+```
+
+Si la boutique actuelle a déjà été installée en mode démo, le plus propre est de repartir sur une installation neuve :
+
+```bash
+docker compose down -v --remove-orphans
+docker compose up -d
+```
+
+N'exécute cette réinstallation que si tu peux perdre l'instance actuelle.
+
+## Important sur le domaine dynamique
+
+Utilise `PS_HANDLE_DYNAMIC_DOMAIN=0` par défaut en local.
+
+Quand cette option vaut `1`, l'image Docker place un script `docker_updt_ps_domains.php` devant `index.php` pour réécrire le domaine à la volée. C'est utile seulement si le domaine ou le port changent souvent entre deux démarrages.
+
+Sur une instance stable en `localhost:8080` ou sur un sous-domaine fixe, cette option peut provoquer des redirections parasites sur la home. Ne l'active que si tu en as réellement besoin.
+
+## Important sur le thème front office
+
+Sur cette stack, un script post-install force le thème `classic` après l'installation automatique.
+
+Pourquoi :
+
+- l'image Docker `prestashop/prestashop:9.1.0-apache` installe par défaut `hummingbird`
+- dans notre contexte local, `classic` s'est montré plus stable et permet une homepage immédiatement exploitable sur `/`
+
+Le script est dans [docker/post-install-scripts/10-force-classic-theme.sh](/work/prestashop/docker/post-install-scripts/10-force-classic-theme.sh).
 
 ## Déploiement derrière Nginx sur OVH
 

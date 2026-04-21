@@ -35,14 +35,17 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWD: ${DB_PASSWORD}
       PS_DOMAIN: ${PS_DOMAIN}
-      PS_HANDLE_DYNAMIC_DOMAIN: "1"
+      PS_LANGUAGE: ${PS_LANGUAGE}
+      PS_COUNTRY: ${PS_COUNTRY}
+      PS_HANDLE_DYNAMIC_DOMAIN: ${PS_HANDLE_DYNAMIC_DOMAIN}
       PS_INSTALL_AUTO: "1"
-      PS_DEMO_MODE: "1"
+      PS_DEMO_MODE: ${PS_DEMO_MODE}
       PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN}
       ADMIN_MAIL: ${ADMIN_MAIL}
       ADMIN_PASSWD: ${ADMIN_PASSWD}
     volumes:
       - prestashop_data:/var/www/html
+      - ./docker/post-install-scripts:/tmp/post-install-scripts:ro
 
   phpmyadmin:
     image: phpmyadmin:5-apache

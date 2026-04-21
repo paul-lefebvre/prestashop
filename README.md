@@ -101,6 +101,7 @@ La stack utilise les variables d'environnement officielles de l'image PrestaShop
 - `PS_DOMAIN=localhost:8080`
 - `PS_LANGUAGE=fr`
 - `PS_COUNTRY=fr`
+- `PS_ENABLE_SSL=0`
 - `PS_HANDLE_DYNAMIC_DOMAIN=0`
 - `PS_FOLDER_ADMIN=admin-dev`
 - `ADMIN_MAIL` et `ADMIN_PASSWD`
@@ -179,6 +180,7 @@ Exemple pour `prestashop.bjmcom-textile.fr` :
 
 ```env
 PS_DOMAIN=prestashop.bjmcom-textile.fr
+PS_ENABLE_SSL=1
 PS_BIND_IP=127.0.0.1
 PS_PORT=8080
 PMA_BIND_IP=127.0.0.1
@@ -198,13 +200,27 @@ server {
     listen 80;
     server_name prestashop.bjmcom-textile.fr;
 
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name prestashop.bjmcom-textile.fr;
+
+    ssl_certificate /etc/letsencrypt/live/prestashop.bjmcom-textile.fr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/prestashop.bjmcom-textile.fr/privkey.pem;
+
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header HTTPS on;
         proxy_http_version 1.1;
+        proxy_redirect off;
     }
 }
 ```

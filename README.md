@@ -145,6 +145,26 @@ Pourquoi :
 
 Le script est dans [docker/post-install-scripts/10-force-classic-theme.sh](/work/prestashop/docker/post-install-scripts/10-force-classic-theme.sh).
 
+Si une boutique est déjà installée et n'a pas basculé sur `classic`, tu peux rejouer le correctif sans reset :
+
+```bash
+make fix-theme-classic
+```
+
+Tu peux aussi vérifier dans les logs d'installation si le script post-install a bien été exécuté :
+
+```bash
+docker compose logs --tail=200 prestashop
+```
+
+Tu dois voir passer :
+
+```text
+* Running post-install script(s)...
+* Post-install: forcing classic theme for front office stability ...
+* Post-install: classic theme applied and cache cleared.
+```
+
 ## Déploiement derrière Nginx sur OVH
 
 Pour une mise en ligne parallèle à une instance Sylius existante, le plus sûr est :
@@ -221,6 +241,7 @@ Ne publie pas phpMyAdmin sur Internet sans restriction réseau ou authentificati
 - `make logs` : suit les logs
 - `make pull` : récupère les images
 - `make config` : affiche la configuration Compose résolue
+- `make fix-theme-classic` : force le thème `classic` sur une boutique déjà installée
 - `make reset` : supprime la stack et les volumes
 
 ## Remarque importante

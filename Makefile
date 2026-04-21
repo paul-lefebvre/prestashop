@@ -1,6 +1,6 @@
 COMPOSE := docker compose
 
-.PHONY: start up down restart stop logs ps status reset pull config
+.PHONY: start up down restart stop logs ps status reset pull config fix-theme-classic
 
 start:
 	$(COMPOSE) up -d
@@ -29,6 +29,10 @@ pull:
 
 config:
 	$(COMPOSE) config
+
+fix-theme-classic:
+	$(COMPOSE) exec prestashop sh /tmp/post-install-scripts/10-force-classic-theme.sh
+	$(COMPOSE) exec prestashop apache2ctl graceful
 
 reset:
 	$(COMPOSE) down -v --remove-orphans

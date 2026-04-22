@@ -103,6 +103,7 @@ La stack utilise les variables d'environnement officielles de l'image PrestaShop
 - `PS_COUNTRY=fr`
 - `PS_ENABLE_SSL=0`
 - `PS_HANDLE_DYNAMIC_DOMAIN=0`
+- `PS_TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR`
 - `PS_FOLDER_ADMIN=admin-dev`
 - `ADMIN_MAIL` et `ADMIN_PASSWD`
 
@@ -181,6 +182,7 @@ Exemple pour `prestashop.bjmcom-textile.fr` :
 ```env
 PS_DOMAIN=prestashop.bjmcom-textile.fr
 PS_ENABLE_SSL=1
+PS_TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR
 PS_BIND_IP=127.0.0.1
 PS_PORT=8080
 PMA_BIND_IP=127.0.0.1
@@ -246,6 +248,41 @@ curl -I https://prestashop.bjmcom-textile.fr
 ```
 
 Ne publie pas phpMyAdmin sur Internet sans restriction réseau ou authentification supplémentaire.
+
+### Cas fréquent : back office qui refuse la connexion en HTTPS
+
+Si le back office affiche un message du type :
+
+`Pour des raisons de sécurité, vous ne pouvez pas vous connecter tant que le protocole SSL n'est pas activé`
+
+alors la boutique est derrière Nginx en HTTPS, mais PrestaShop ne considère pas encore la requête comme sécurisée.
+
+Vérifications et correctifs :
+
+1. Dans `.env`, utiliser `PS_ENABLE_SSL=1` sur le serveur si l'installation se fait derrière HTTPS.
+2. Ajouter `PS_TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR` pour que PrestaShop fasse confiance au reverse proxy local.
+3. Dans Nginx, transmettre au backend :
+
+```nginx
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto https;
+proxy_set_header X-Forwarded-Port 443;
+proxy_set_header HTTPS on;
+proxy_redirect off;
+```
+
+4. Si la boutique est déjà installée, activer SSL en base :
+
+```bash
+docker compose exec db mysql -uroot -p"${DB_ROOT_PASSWORD}" -e "USE ${DB_NAME}; UPDATE ps_configuration SET value='1' WHERE name IN ('PS_SSL_ENABLED','PS_SSL_ENABLED_EVERYWHERE');"
+```
+
+5. Vider le cache applicatif :
+
+```bash
+docker compose exec prestashop sh -lc 'rm -rf /var/www/html/var/cache/* && chown -R www-data:www-data /var/www/html/var/cache /var/www/html/var/logs'
+docker compose exec prestashop apache2ctl graceful
+```
 
 ## Commandes utiles
 

@@ -48,6 +48,7 @@ services:
     volumes:
       - prestashop_data:/var/www/html
       - ./docker/post-install-scripts:/tmp/post-install-scripts:ro
+      - ./docker/apache/conf-enabled/zz-reverse-proxy-ssl.conf:/etc/apache2/conf-enabled/zz-reverse-proxy-ssl.conf:ro
 
   phpmyadmin:
     image: phpmyadmin:5-apache

@@ -284,6 +284,14 @@ docker compose exec prestashop sh -lc 'rm -rf /var/www/html/var/cache/* && chown
 docker compose exec prestashop apache2ctl graceful
 ```
 
+6. Cette stack monte aussi un snippet Apache de compatibilité reverse proxy :
+
+```text
+docker/apache/conf-enabled/zz-reverse-proxy-ssl.conf
+```
+
+Il transforme `X-Forwarded-Proto: https` en `HTTPS=on` côté Apache/PHP, ce qui aide le middleware Symfony du back office à reconnaître correctement les requêtes sécurisées derrière Nginx.
+
 ## Commandes utiles
 
 - `make up` : démarre la stack
